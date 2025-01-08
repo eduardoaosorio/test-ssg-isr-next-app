@@ -2,7 +2,21 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-First, run the development server:
+First, set up your environment variables:
+
+1. Copy `.env.example` to `.env.local`:
+```bash
+cp .env.example .env.local
+```
+
+2. Generate a secure token for revalidation:
+```bash
+openssl rand -base64 32
+```
+
+3. Update the `REVALIDATION_TOKEN` in your `.env.local` with the generated token.
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -17,6 +31,37 @@ You can start editing the page by modifying `pages/index.tsx`. The page auto-upd
 [API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+
+## On-Demand Revalidation
+
+This project implements on-demand revalidation for static pages. This allows you to trigger a rebuild of specific pages without redeploying the entire site.
+
+### How to Use
+
+To revalidate a page, send a POST request to the revalidation endpoint:
+
+```bash
+curl -X POST \
+  -H "Authorization: your-revalidation-token" \
+  -H "Content-Type: application/json" \
+  -d '{"path": "/p/talent/john-doe/super-bulk"}' \
+  http://localhost:3000/api/revalidate
+```
+
+Replace `your-revalidation-token` with the token from your `.env.local` file.
+
+### API Response
+
+The endpoint will respond with:
+- `200 OK` - Successfully revalidated the page
+- `401 Unauthorized` - Invalid or missing token
+- `405 Method Not Allowed` - Only POST requests are allowed
+- `400 Bad Request` - Missing path parameter
+- `500 Internal Server Error` - Revalidation failed
+
+### Security
+
+The revalidation endpoint is protected by a token that must be included in the `Authorization` header. This token should be kept secure and only shared with trusted services that need to trigger revalidations.
 
 ## Learn More
 
